@@ -1,4 +1,4 @@
-import { create, shouldSet, set, get, getLength } from './bytes'
+import { create, shouldSet, set, get, getLength } from '../bytes'
 
 describe('create', () => {
   it('should create a new Uint8Array of the specified size', () => {

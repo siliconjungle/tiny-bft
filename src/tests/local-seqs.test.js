@@ -1,12 +1,12 @@
 import dotenv from 'dotenv'
-import { generateKeyPair, signData } from './signatures'
+import { generateKeyPair, signData } from '../signatures'
 import {
   getLocalSeq,
   getLocalSeqs,
   isValidGlobalSeq,
   shouldSetLocalSeq,
   setLocalSeq,
-} from './local-seqs'
+} from '../local-seqs'
 
 dotenv.config()
 

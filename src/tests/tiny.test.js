@@ -1,11 +1,11 @@
 import dotenv from 'dotenv'
-import { get, getNextGlobalSeq, set, getOps } from './tiny'
+import { get, getNextGlobalSeq, set, getOps } from '../tiny'
 import {
   isValidGlobalSeq,
   setLocalSeq,
   getNextLocalSeq,
-} from './local-seqs'
-import { signData } from './signatures'
+} from '../local-seqs'
+import { signData } from '../signatures'
 
 dotenv.config()
 

@@ -4,7 +4,7 @@ import {
   verifySignature,
   toString,
   toBuffer,
-} from './signatures'
+} from '../signatures'
 
 describe('signatures', () => {
   describe('signData', () => {
