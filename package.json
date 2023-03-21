@@ -1,0 +1,14 @@
+{
+  "name": "bft-tiny-merge",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node --experimental-specifier-resolution=node index.js"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.3"
+  }
+}
