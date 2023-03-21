@@ -15,18 +15,10 @@ export const generateKeyPair = () => new Promise((resolve, reject) => {
 })
 
 export const signData = async (privateKey, data) =>
-  crypto.sign('SHA256', data, privateKey)
+  crypto.sign('SHA256', JSON.stringify(data), privateKey)
 
 export const verifySignature = async (publicKey, signature, data) =>
-  crypto.verify('SHA256', data, publicKey, signature)
+  crypto.verify('SHA256', JSON.stringify(data), publicKey, signature)
 
-// ;(async () => {
-//   const keyPair = await generateKeyPair()
-
-//   const data = 'Hello, I am an agent!'
-//   const signature = await signData(keyPair.privateKey, data)
-//   console.log('Signature:', signature.toString('hex'))
-
-//   const isValid = await verifySignature(keyPair.publicKey, signature, data)
-//   console.log('Is the signature valid?', isValid)
-// })()
+export const toString = (buffer) => buffer.toString('hex')
+export const toBuffer = (string) => Buffer.from(string, 'hex')

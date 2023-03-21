@@ -1,5 +1,5 @@
 import { isValidGlobalSeq } from './local-seqs'
-import bytes from './bytes'
+import * as bytes from './bytes'
 
 const NUM_BYTES = 1228800
 
@@ -19,8 +19,8 @@ export const set = (globalSeq, index, value) => {
   }
 
   const currentGlobalSeq = globalSeqs[index]
-  if (currentGlobalSeq === undefined || shouldSet(currentGlobalSeq, globalSeq, value, bytes.get(values, index))) {
-    if (!bytes.shouldSet(values, value)) {
+  if (currentGlobalSeq === undefined || shouldSet(currentGlobalSeq, globalSeq, bytes.get(values, index), value)) {
+    if (!bytes.shouldSet(value)) {
       return
     }
 
