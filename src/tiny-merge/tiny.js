@@ -1,5 +1,6 @@
 import { isValidGlobalSeq } from './local-seqs'
 import * as bytes from './bytes'
+import { createOp } from './messages'
 
 const NUM_BYTES = 1228800
 
@@ -35,12 +36,8 @@ export const getOps = () => {
   for (let i = 0; i < NUM_BYTES; i++) {
     const globalSeq = globalSeqs[i]
     if (globalSeq !== -1) {
-      ops.push({
-        type: 'set',
-        globalSeq,
-        index: i,
-        value: bytes.get(values, i),
-      })
+      const op = createOp.set(globalSeq, i, bytes.get(values, i))
+      ops.push(op)
     }
   }
   return ops

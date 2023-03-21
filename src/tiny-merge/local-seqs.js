@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import { verifySignature } from './signatures'
+import { createOp } from './messages'
 
 dotenv.config()
 
@@ -16,12 +17,13 @@ export const getLocalSeqs = () => {
   const ops = []
 
   for (const publicKey in localSeqs) {
-    ops.push({
-      type: 'proof',
+    const op = createOp.proof(
       publicKey,
-      localSeq: localSeqs[publicKey].seq,
-      signature: localSeqs[publicKey].signature,
-    })
+      localSeqs[publicKey].seq,
+      localSeqs[publicKey].signature
+    )
+
+    ops.push(op)
   }
 
   return ops

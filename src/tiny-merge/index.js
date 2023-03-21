@@ -2,7 +2,7 @@
 // TODO: Add a method for adding a new agent
 // TODO: Add a method for creating new changes
 
-import * as tiny from '../tiny'
+import * as tiny from './tiny'
 import * as localSeqs from './local-seqs'
 
 export const applyOps = async (ops) => {
