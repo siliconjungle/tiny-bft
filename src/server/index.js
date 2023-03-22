@@ -4,6 +4,7 @@ import cors from 'cors'
 import { WebSocketServer } from 'ws'
 import { nanoid } from 'nanoid'
 import ServerRoom from './server-room.js'
+import { validateMessage } from '../tiny-merge/messages.js'
 
 dotenv.config()
 
@@ -28,17 +29,37 @@ const wss = new WebSocketServer({ server })
 
 wss.on('connection', (ws, req) => {
   console.log('_CONNECTION_')
-  const url = (req.url ?? '/test').substring(1)
+
+  if (typeof req.url !== 'string') {
+    ws.close()
+    return
+  }
+
+  // Remove the leading slash
+  const url = req.url.slice(1)
+
+  // Must be alphanumeric or contain - or _
+  const regex = /^[a-zA-Z0-9-_]+$/
+  if (!regex.test(url)) {
+    ws.close()
+    return
+  }
+
   const client = { ws, id: nanoid(), slug: url, alive: true, data: {} }
   sockets.set(ws, client)
 
-  const currentRoom = getRoomBySlug(req.url)
+  const currentRoom = getRoomBySlug(url)
   currentRoom.handleConnection(client)
 
   ws.on('message', (data, isBinary) => {
     if (isBinary) return
 
     const message = JSON.parse(data.toString())
+    if (!validateMessage(message)) {
+      ws.close()
+      return
+    }
+  
     currentRoom.handleMessage(client, message)
   })
 

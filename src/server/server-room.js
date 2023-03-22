@@ -1,6 +1,7 @@
 import WebSocket from 'isomorphic-ws'
 import OpsManager from '../tiny-merge/index.js'
 import { createMessage } from '../tiny-merge/messages.js'
+import { NUM_BYTES } from '../tiny-merge/tiny.js'
 
 class ServerRoom {
   constructor(slug, publicKeys) {
@@ -16,7 +17,6 @@ class ServerRoom {
   }
 
   handleMessage = async (client, { type, ops }) => {
-    console.log('_MESSAGE_', type, ops)
     switch (type) {
       case 'connect': {
         const appliedOps = await this.opsManager.applyOps(ops)

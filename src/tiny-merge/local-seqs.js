@@ -1,7 +1,7 @@
 import { verifySignature } from './signatures.js'
 import { createOp } from './messages.js'
 
-const MAX_LOCAL_SEQ = 1000000000
+export const MAX_LOCAL_SEQ = 1000000000
 
 class LocalSeqs {
   constructor(publicKeys) {

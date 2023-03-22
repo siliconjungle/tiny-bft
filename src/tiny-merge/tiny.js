@@ -1,7 +1,7 @@
 import * as bytes from './bytes.js'
 import { createOp } from './messages.js'
 
-const NUM_BYTES = 1228800
+export const NUM_BYTES = 1228800
 
 class Tiny {
   constructor() {

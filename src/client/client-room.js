@@ -1,6 +1,6 @@
 import EventEmitter from 'events'
 import WebSocket from 'isomorphic-ws'
-import { createMessage } from '../tiny-merge/messages.js'
+import { createMessage, validateMessage } from '../tiny-merge/messages.js'
 
 const RECONNECT_TIMEOUT = 10000
 
@@ -65,8 +65,16 @@ class ClientRoom extends EventEmitter {
     }
   }
 
-  handleMessage = async (event) => {
-    const message = JSON.parse(event.data)
+  handleMessage = async (data, isBinary) => {
+    if (isBinary) return
+
+    const message = JSON.parse(data.data)
+
+    if (!validateMessage(message)) {
+      this.connection.close()
+      return
+    }
+
     this.emit('message', message)
 
     console.log('_MESSAGE_', message)
