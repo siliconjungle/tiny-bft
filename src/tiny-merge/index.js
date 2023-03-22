@@ -3,7 +3,7 @@ import LocalSeqs from './local-seqs'
 import * as bytes from './bytes'
 
 // If you also hand an agent id with a set op you can restrict who can set the value.
-export class OpManager {
+class OpManager {
   constructor() {
     this.tiny = new Tiny()
     this.localSeqs = new LocalSeqs()
@@ -54,3 +54,5 @@ export class OpManager {
     return ops
   }
 }
+
+export default OpManager

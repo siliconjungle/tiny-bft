@@ -16,6 +16,7 @@ export class ServerRoom {
   }
 
   handleMessage = async (client, { type, ops }) => {
+    console.log('MESSAGE', type, ops)
     switch (type) {
       case 'connect': {
         const appliedOps = await this.opsManager.applyOps(ops)
