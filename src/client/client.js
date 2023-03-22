@@ -5,56 +5,57 @@ const isBrowser = typeof window !== 'undefined'
 const RECONNECT_TIMEOUT = 10000
 
 class Client extends EventEmitter {
-	constructor(options) {
-		super()
+  constructor(options) {
+    super()
     this.options = options
     this.messages = []
-		this.connection = isBrowser ? this.createConnection() : null
+    this.connection = isBrowser ? this.createConnection() : null
 	}
 
-	handleMessage = (event) => {
-		const message = JSON.parse(event.data)
-		this.emit('message', message)
-	}
+  handleMessage = (event) => {
+    const message = JSON.parse(event.data)
+    this.emit('message', message)
+  }
 
-	handleOpen = (event) => {
-		this.emit('open', event)
-	}
+  handleOpen = (event) => {
+    this.emit('open', event)
+  }
 
-	handleClose = (event) => {
-		this.emit('close', event)
-		setTimeout(this.createConnection, RECONNECT_TIMEOUT)
-	}
+  handleClose = (event) => {
+    this.emit('close', event)
+    setTimeout(this.createConnection, RECONNECT_TIMEOUT)
+  }
 
-	handleError = (event) => {
-		this.emit('error', event)
-	}
+  handleError = (event) => {
+    this.emit('error', event)
+  }
 
-	createConnection = () => {
-		const connection = new WebSocket(this.options.uri)
-		connection.addEventListener('message', this.handleMessage)
-		connection.addEventListener('open', this.handleOpen)
-		connection.addEventListener('close', this.handleClose)
-		connection.addEventListener('error', this.handleError)
-		this.messages = []
-		return connection
-	}
+  createConnection = () => {
+    const connection = new WebSocket(this.options.uri)
+    connection.addEventListener('message', this.handleMessage)
+    connection.addEventListener('open', this.handleOpen)
+    connection.addEventListener('close', this.handleClose)
+    connection.addEventListener('error', this.handleError)
+    this.messages = []
 
-	addMessage(message) {
-		this.messages.push(message)
-		this.sendMessages()
-	}
+    return connection
+  }
 
-	sendMessages() {
-		const connection = this.connection
-		if (connection?.readyState === WebSocket.OPEN) {
-			this.messages.forEach((message) => {
-				connection.send(JSON.stringify(message))
-			})
+  addMessage(message) {
+    this.messages.push(message)
+    this.sendMessages()
+  }
 
-			this.messages = []
-		}
-	}
+  sendMessages() {
+    const connection = this.connection
+    if (connection?.readyState === WebSocket.OPEN) {
+      this.messages.forEach((message) => {
+        connection.send(JSON.stringify(message))
+      })
+
+      this.messages = []
+    }
+  }
 }
 
 export default Client
