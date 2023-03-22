@@ -1,5 +1,5 @@
-import * as bytes from './bytes'
-import { createOp } from './messages'
+import * as bytes from './bytes.js'
+import { createOp } from './messages.js'
 
 const NUM_BYTES = 1228800
 
@@ -10,19 +10,19 @@ class Tiny {
     this.values = bytes.create(NUM_BYTES)
   }
 
-  shouldSet(globalSeq, globalSeq2, value, value2) {
+  shouldSet = (globalSeq, globalSeq2, value, value2) => {
     return globalSeq2 > globalSeq || (globalSeq2 === globalSeq && value2 > value)
   }
 
-  get(index) {
+  get = (index) => {
     return bytes.get(this.values, index)
   }
 
-  getNextGlobalSeq() {
+  getNextGlobalSeq = () => {
     return this.latestGlobalSeq + 1
   }
 
-  set(globalSeq, index, value) {
+  set = (globalSeq, index, value) => {
     const currentGlobalSeq = this.globalSeqs[index]
     if (
       currentGlobalSeq === undefined ||
@@ -42,7 +42,7 @@ class Tiny {
     return false
   }
 
-  getOps() {
+  getOps = () => {
     const ops = []
     for (let i = 0; i < NUM_BYTES; i++) {
       const globalSeq = this.globalSeqs[i]

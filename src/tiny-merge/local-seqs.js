@@ -1,5 +1,5 @@
-import { verifySignature } from './signatures'
-import { createOp } from './messages'
+import { verifySignature } from './signatures.js'
+import { createOp } from './messages.js'
 
 const MAX_LOCAL_SEQ = 1000000000
 
@@ -10,15 +10,15 @@ class LocalSeqs {
     this.localSeqs = {}
   }
 
-  getLocalSeq(publicKey) {
+  getLocalSeq = (publicKey) => {
     return this.localSeqs[publicKey] || -1
   }
 
-  getNextLocalSeq(publicKey) {
+  getNextLocalSeq = (publicKey) => {
     return this.getLocalSeq(publicKey) + 1
   }
 
-  getLocalSeqs() {
+  getLocalSeqs = () => {
     const ops = []
 
     for (const publicKey in this.localSeqs) {
@@ -34,11 +34,11 @@ class LocalSeqs {
     return ops
   }
 
-  isValidGlobalSeq(seq) {
+  isValidGlobalSeq = (seq) => {
     return seq > -2 && seq <= this.maxGlobalSeq
   }
 
-  async shouldSetLocalSeq(publicKey, seq, signature) {
+  shouldSetLocalSeq = async (publicKey, seq, signature) => {
     return (
       this.publicKeys.includes(publicKey) &&
       seq < MAX_LOCAL_SEQ &&
@@ -47,7 +47,7 @@ class LocalSeqs {
     )
   }
 
-  async setLocalSeq (publicKey, seq, signature) {
+  setLocalSeq = async (publicKey, seq, signature) => {
     const shouldSet = await this.shouldSetLocalSeq(publicKey, seq, signature)
     if (!shouldSet) {
       return false

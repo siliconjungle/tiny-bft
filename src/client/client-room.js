@@ -1,57 +1,81 @@
 import EventEmitter from 'events'
-import Client from './client'
-import { createMessage } from '../tiny-merge/messages'
+import WebSocket from 'isomorphic-ws'
+import { createMessage } from '../tiny-merge/messages.js'
+
+const RECONNECT_TIMEOUT = 10000
 
 class ClientRoom extends EventEmitter {
   constructor(uri, slug, opsManager) {
     super()
-    this.client = new Client({ uri: uri + '/' + slug })
-    this.client.addListener('open', this.handleOpen)
-    this.client.addListener('close', this.handleClose)
-    this.client.addListener('error', this.handleError)
-    this.client.addListener('message', this.handleMessage)
     this.opsManager = opsManager
+    this.messages = []
+    this.connection = this.createConnection(uri + '/' + slug)
   }
 
-  sendMessage(message) {
-    this.client.addMessage(message)
+  createConnection = (url) => {
+    const connection = new WebSocket(url)
+    connection.onmessage = this.handleMessage
+    connection.onopen = this.handleOpen
+    connection.onclose = this.handleClose
+    connection.onerror = this.handleError
+    this.messages = []
+
+    return connection
   }
 
-  handleOpen() {
+  addMessage = (message) => {
+    this.messages.push(message)
+    this.sendMessages()
+  }
+
+  sendMessages = () => {
+    if (this.connection.readyState === WebSocket.OPEN) {
+      this.messages.forEach((message) => {
+        this.connection.send(JSON.stringify(message))
+      })
+      this.messages = []
+    }
+  }
+
+  handleOpen = (event) => {
+    this.emit('open', event)
     const ops = this.opsManager.getOps()
-    this.client.addMessage(createMessage.connect(ops))
-    this.client.sendMessages()
+    this.addMessage(createMessage.connect(ops))
+    this.sendMessages()
   }
 
-  handleClose() {}
-  handleError() {}
-  handlePatch() {}
+  handleClose = (event) => {
+    this.emit('close', event)
+    setTimeout(() => this.createConnection(this.uri), RECONNECT_TIMEOUT)
+  }
+
+  handleError = (error) => {
+    this.emit('error', error)
+  }
 
   handleOps = (ops) => {
     this.emit('apply-operations-remote', ops)
   }
 
-  handleMessage = async (message) => {
+  processMessage = async (message) => {
+    const filteredOps = await this.opsManager.applyOps(message.ops)
+
+    if (filteredOps.length > 0) {
+      this.handleOps(filteredOps)
+    }
+  }
+
+  handleMessage = async (event) => {
+    const message = JSON.parse(event.data)
+    this.emit('message', message)
+
     console.log('_MESSAGE_', message)
+
     switch (message.type) {
-      case 'connect': {
-        const filteredOps = await this.opsManager.applyOps(message.ops)
-
-        if (filteredOps.length > 0) {
-          this.handleOps(filteredOps)
-        }
-
+      case 'connect':
+      case 'patch':
+        await this.processMessage(message)
         break
-      }
-      case 'patch': {
-        const filteredOps = await this.opsManager.applyOps(message.ops)
-
-        if (filteredOps.length > 0) {
-          this.handleOps(filteredOps)
-        }
-
-        break
-      }
     }
   }
 }

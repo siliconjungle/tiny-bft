@@ -1,36 +1,45 @@
-import Tiny from './tiny'
-import LocalSeqs from './local-seqs'
-import * as bytes from './bytes'
+import Tiny from './tiny.js'
+import LocalSeqs from './local-seqs.js'
+import * as bytes from './bytes.js'
+import { toBuffer } from './signatures.js'
 
 // If you also hand an agent id with a set op you can restrict who can set the value.
-class OpManager {
-  constructor() {
+class OpsManager {
+  constructor(publicKeys) {
     this.tiny = new Tiny()
-    this.localSeqs = new LocalSeqs()
+    this.localSeqs = new LocalSeqs(publicKeys)
   }
 
-  getLatestGlobalSeq() {
+  getLatestGlobalSeq = () => {
     return this.tiny.getNextGlobalSeq() - 1
   }
 
-  getLatestLocalSeq(publicKey) {
+  getLatestLocalSeq = (publicKey) => {
     return this.localSeqs.getLocalSeq(publicKey)
   }
 
-  getValueAtIndex (index) {
+  getNextGlobalSeq = () => {
+    return this.tiny.getNextGlobalSeq()
+  }
+
+  getNextLocalSeq = (publicKey) => {
+    return this.localSeqs.getNextLocalSeq(publicKey)
+  }
+
+  getValueAtIndex = (index) => {
     return this.tiny.get(index)
   }
 
-  getValues () {
+  getValues = () => {
     return bytes.duplicate(this.tiny.values)
   }
 
-  async applyOps(ops) {
+  applyOps = async (ops) => {
     const appliedOps = []
 
     for (const op of ops) {
       if (op.type === 'proof') {
-        const appliedLocalSeq = await this.localSeqs.setLocalSeq(op.publicKey, op.localSeq, op.signature)
+        const appliedLocalSeq = await this.localSeqs.setLocalSeq(op.publicKey, op.localSeq, toBuffer(op.signature))
 
         if (appliedLocalSeq) {
           appliedOps.push(op)
@@ -47,7 +56,7 @@ class OpManager {
     return appliedOps
   }
 
-  getOps() {
+  getOps = () => {
     const ops = []
     ops.push(...this.localSeqs.getLocalSeqs())
     ops.push(...this.tiny.getOps())
@@ -55,4 +64,4 @@ class OpManager {
   }
 }
 
-export default OpManager
+export default OpsManager

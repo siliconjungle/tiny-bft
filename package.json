@@ -5,9 +5,9 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "server": "node --experimental-specifier-resolution=node src/server/index.js",
-    "client": "node --experimental-specifier-resolution=node src/client/index.js",
-    "test": "node --experimental-vm-modules --experimental-specifier-resolution=node node_modules/jest/bin/jest.js"
+    "server": "node src/server/index.js",
+    "client": "node src/client/index.js",
+    "test": "node node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,6 +15,7 @@
     "dotenv": "^16.0.3",
     "events": "^3.3.0",
     "express": "^4.18.2",
+    "isomorphic-ws": "^5.0.0",
     "nanoid": "^4.0.1",
     "ws": "^8.13.0"
   },
