@@ -1,52 +1,69 @@
-import dotenv from 'dotenv'
 import { verifySignature } from './signatures'
 import { createOp } from './messages'
 
-dotenv.config()
-
-const publicKeys = process.env.PUBLIC_KEYS ?? ''.split(',')
-
 const MAX_LOCAL_SEQ = 1000000000
-let maxGlobalSeq = -1
-const localSeqs = {}
 
-export const getLocalSeq = (publicKey) => localSeqs[publicKey] || -1
-export const getNextLocalSeq = (publicKey) => getLocalSeq(publicKey) + 1
+class LocalSeqs {
+  constructor(publicKeys) {
+    this.publicKeys = publicKeys
+    this.maxGlobalSeq = -1
+    this.localSeqs = {}
+  }
 
-export const getLocalSeqs = () => {
-  const ops = []
+  getLocalSeq(publicKey) {
+    return this.localSeqs[publicKey] || -1
+  }
 
-  for (const publicKey in localSeqs) {
-    const op = createOp.proof(
-      publicKey,
-      localSeqs[publicKey].seq,
-      localSeqs[publicKey].signature
+  getNextLocalSeq(publicKey) {
+    return this.getLocalSeq(publicKey) + 1
+  }
+
+  getLocalSeqs() {
+    const ops = []
+
+    for (const publicKey in this.localSeqs) {
+      const op = createOp.proof(
+        publicKey,
+        this.localSeqs[publicKey].seq,
+        this.localSeqs[publicKey].signature
+      )
+
+      ops.push(op)
+    }
+
+    return ops
+  }
+
+  isValidGlobalSeq(seq) {
+    return seq > -2 && seq <= this.maxGlobalSeq
+  }
+
+  async shouldSetLocalSeq(publicKey, seq, signature) {
+    return (
+      this.publicKeys.includes(publicKey) &&
+      seq < MAX_LOCAL_SEQ &&
+      seq > this.getLocalSeq(publicKey) &&
+      verifySignature(publicKey, signature, seq)
     )
-
-    ops.push(op)
   }
 
-  return ops
-}
+  async setLocalSeq (publicKey, seq, signature) {
+    const shouldSet = await this.shouldSetLocalSeq(publicKey, seq, signature)
+    if (!shouldSet) {
+      return false
+    }
 
-export const isValidGlobalSeq = (seq) => seq > -2 && seq <= maxGlobalSeq
+    const currentSeq = this.getLocalSeq(publicKey)
+    const diff = seq - currentSeq
+    this.maxGlobalSeq += diff
 
-export const shouldSetLocalSeq = async (publicKey, seq, signature) =>
-  publicKeys.includes(publicKey) &&
-  seq < MAX_LOCAL_SEQ &&
-  seq > getLocalSeq(publicKey) &&
-  verifySignature(publicKey, signature, seq)
+    this.localSeqs[publicKey] = {
+      seq,
+      signature,
+    }
 
-export const setLocalSeq = (publicKey, seq, signature) => {
-  if (!shouldSetLocalSeq(publicKey, seq, signature)) {
-    return
-  }
-  const currentSeq = getLocalSeq(publicKey)
-  const diff = seq - currentSeq
-  maxGlobalSeq += diff
-
-  localSeqs[publicKey] = {
-    seq,
-    signature,
+    return true
   }
 }
+
+export default LocalSeqs

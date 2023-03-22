@@ -1,21 +1,12 @@
 import WebSocket from 'ws'
-// import Tiny from '../merge/'
-// import { createMessage } from '../merge/messages'
-// import {
-  // getSnapshot,
-  // setSnapshot,
-// } from './database'
+import OpManager from '../tiny-merge'
+import { createMessage } from '../tiny-merge/messages'
 
 export class ServerRoom {
   constructor(slug) {
     this.clients = new Map()
-    // this.tiny = new Kernal(this.handleOps)
+    this.opManager = new OpManager()
     this.slug = slug
-    // getSnapshot(slug).then((snapshot) => {
-    //   if (snapshot.length > 0) {
-    //     this.kernal.applyOps(snapshot, 'database')
-    //   }
-    // })
   }
 
   handleConnection = (client) => {
@@ -24,50 +15,35 @@ export class ServerRoom {
     return this
   }
 
-  handleMessage = async (client, message) => {
-    switch (message.type) {
+  handleMessage = async (client, { type, ops }) => {
+    switch (type) {
       case 'connect': {
-        // const { ops, agentId } = message
-        // client.agentId = agentId
+        const appliedOps = await this.opsManager.applyOps(ops)
+        const snapshotOps = this.opManager.getOps()
 
-        // this.kernal.applyOps(ops, 'remote')
-        // const snapshotOps = this.kernal.getSnapshotOps(this.slug)
-        // this.sendMessage(
-          // client,
-          // createMessage.connect(agentId, snapshotOps)
-        // )
-        // This should be compressed into a single message.
-        // We are currently doing a bunch of inefficient work.
-        // for (const [_, innerClient] of this.clients) {
-          // if (innerClient.agentId) {
-            // this.sendMessage(
-            //   client,
-            //   createMessage.connected(innerClient.agentId)
-            // )
-          // }
-        // }
-        // this.broadcastMessageExcluding(createMessage.connected(agentId), client.id)
+        this.sendMessage(
+          client,
+          createMessage.connect(snapshotOps)
+        )
+
+        this.broadcastMessageExcluding(
+          client,
+          createMessage.patch(appliedOps)
+        )
+
         break
       }
       case 'patch': {
-        // const { ops } = message
-        // this.kernal.applyOps(ops, 'remote')
+        const appliedOps = await this.opsManager.applyOps(ops)
+
+        this.broadcastMessageExcluding(
+          client,
+          createMessage.patch(appliedOps)
+        )
+
         break
       }
     }
-
-    return this
-  }
-
-  handleOps = (ops, source) => {
-    // if (source === 'local' || source === 'remote') {
-    //   setSnapshot(this.slug, this.kernal.getSnapshotOps())
-    // }
-
-    // This should not be sent to the sender.
-    // this.broadcastMessage(
-    //   createMessage.patch(ops),
-    // )
 
     return this
   }
@@ -88,8 +64,6 @@ export class ServerRoom {
     if (!this.clients.has(client.id)) {
       return
     }
-
-    // this.broadcastMessageExcluding(createMessage.disconnected(client.agentId), client.id)
 
     this.clients.delete(client.id)
 

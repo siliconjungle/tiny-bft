@@ -1,44 +1,58 @@
-import { isValidGlobalSeq } from './local-seqs'
 import * as bytes from './bytes'
 import { createOp } from './messages'
 
 const NUM_BYTES = 1228800
 
-let latestGlobalSeq = -1
-const globalSeqs = new Array(NUM_BYTES).fill(-1)
-const values = bytes.create(NUM_BYTES)
-
-const shouldSet = (globalSeq, globalSeq2, value, value2) =>
-  globalSeq2 > globalSeq || (globalSeq2 === globalSeq && value2 > value)
-
-export const get = (index) => bytes.get(values, index)
-export const getNextGlobalSeq = () => latestGlobalSeq + 1
-
-export const set = (globalSeq, index, value) => {
-  if (!isValidGlobalSeq(globalSeq)) {
-    return
+class Tiny {
+  constructor() {
+    this.latestGlobalSeq = -1
+    this.globalSeqs = new Array(NUM_BYTES).fill(-1)
+    this.values = bytes.create(NUM_BYTES)
   }
 
-  const currentGlobalSeq = globalSeqs[index]
-  if (currentGlobalSeq === undefined || shouldSet(currentGlobalSeq, globalSeq, bytes.get(values, index), value)) {
-    if (!bytes.shouldSet(value)) {
-      return
+  shouldSet(globalSeq, globalSeq2, value, value2) {
+    return globalSeq2 > globalSeq || (globalSeq2 === globalSeq && value2 > value)
+  }
+
+  get(index) {
+    return bytes.get(this.values, index)
+  }
+
+  getNextGlobalSeq() {
+    return this.latestGlobalSeq + 1
+  }
+
+  set(globalSeq, index, value) {
+    const currentGlobalSeq = this.globalSeqs[index]
+    if (
+      currentGlobalSeq === undefined ||
+      this.shouldSet(currentGlobalSeq, globalSeq, bytes.get(this.values, index), value)
+    ) {
+      if (!bytes.shouldSet(value)) {
+        return false
+      }
+
+      this.globalSeqs[index] = globalSeq
+      bytes.set(this.values, index, value)
+      this.latestGlobalSeq = Math.max(this.latestGlobalSeq, globalSeq)
+
+      return true
     }
 
-    globalSeqs[index] = globalSeq
-    bytes.set(values, index, value)
-    latestGlobalSeq = Math.max(latestGlobalSeq, globalSeq)
+    return false
+  }
+
+  getOps() {
+    const ops = []
+    for (let i = 0; i < NUM_BYTES; i++) {
+      const globalSeq = this.globalSeqs[i]
+      if (globalSeq !== -1) {
+        const op = createOp.set(globalSeq, i, bytes.get(this.values, i))
+        ops.push(op)
+      }
+    }
+    return ops
   }
 }
 
-export const getOps = () => {
-  const ops = []
-  for (let i = 0; i < NUM_BYTES; i++) {
-    const globalSeq = globalSeqs[i]
-    if (globalSeq !== -1) {
-      const op = createOp.set(globalSeq, i, bytes.get(values, i))
-      ops.push(op)
-    }
-  }
-  return ops
-}
+export default Tiny

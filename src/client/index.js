@@ -1,22 +1,16 @@
 import EventEmitter from 'events'
-import { nanoid } from 'nanoid'
 import Client from './client'
-// import Kernal from '../merge/kernal'
-// import { createMessage } from '../tiny-merge'
+import { createMessage } from '../tiny-merge/messages'
 
 export class ClientRoom extends EventEmitter {
-	constructor(uri, slug) {
+	constructor(uri, slug, opsManager) {
 		super()
 		this.client = new Client({ uri: uri + '/' + slug })
 		this.client.addListener('open', this.handleOpen)
 		this.client.addListener('close', this.handleClose)
 		this.client.addListener('error', this.handleError)
 		this.client.addListener('message', this.handleMessage)
-		this.agentId = nanoid()
-		this.agentIds = [
-			this.agentId,
-		]
-		// this.kernal = new Kernal(this.handleOps)
+		this.opsManager = opsManager
 	}
 
 	sendMessage(message) {
@@ -24,52 +18,38 @@ export class ClientRoom extends EventEmitter {
 	}
 
 	handleOpen() {
-		// const ops = this.kernal.getSnapshotOps()
-		// this.client.addMessage(createMessage.connect(this.agentId, ops))
-	}
-
-	addAgentId(agentId) {
-		if (this.agentIds.find(agentId)) {
-			return
-		}
-
-		this.agentIds.push(agentId)
-	}
-
-	removeAgentId(agentId) {
-		this.agentIds = this.agentIds.filter((id) => id !== agentId)
+		const ops = this.opsManager.getOps()
+		this.client.addMessage(createMessage.connect(ops))
 	}
 
 	handleClose() {}
 	handleError() {}
 	handlePatch() {}
 
-	handleOps = (ops, source) => {
-		if (source === 'remote') {
-			this.emit('apply-operations-remote', ops)
-		} else if (source === 'local') {
-			// this.client.addMessage(createMessage.patch(ops))
-		}
+	handleOps = (ops) => {
+		this.emit('apply-operations-remote', ops)
 	}
 
-	handleMessage = (message) => {
+	handleMessage = async (message) => {
 		switch (message.type) {
 			case 'connect': {
-				// this.kernal.applyOps(message.ops, 'remote')
+				const filteredOps = await this.opsManager.applyOps(message.ops)
+
+				if (filteredOps.length > 0) {
+					this.handleOps(filteredOps)
+				}
+
 				break
 			}
 			case 'patch': {
-				// this.kernal.applyOps(message.ops, 'remote')
+				const filteredOps = await this.opsManager.applyOps(message.ops)
+
+				if (filteredOps.length > 0) {
+					this.handleOps(filteredOps)
+				}
+
 				break
 			}
-			// case 'connected': {
-			// 	this.addAgentId(message.agentId)
-			// 	break
-			// }
-			// case 'disconnected': {
-			// 	this.removeAgentId(message.agentId)
-			// 	break
-			// }
 		}
 	}
 }
