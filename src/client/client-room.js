@@ -10,10 +10,11 @@ class ClientRoom extends EventEmitter {
     this.opsManager = opsManager
     this.messages = []
     this.connection = this.createConnection(uri)
+    this.uri = uri
   }
 
-  createConnection = (url) => {
-    const connection = new WebSocket(url)
+  createConnection = (uri) => {
+    const connection = new WebSocket(uri)
     connection.onmessage = this.handleMessage
     connection.onopen = this.handleOpen
     connection.onclose = this.handleClose
@@ -68,6 +69,7 @@ class ClientRoom extends EventEmitter {
   handleMessage = async (data, isBinary) => {
     if (isBinary) return
 
+    // freeze the object prototype.
     const message = JSON.parse(data.data)
 
     if (!validateMessage(message)) {

@@ -1,6 +1,5 @@
 import * as bytes from './bytes.js'
 import { createOp } from './messages.js'
-import { toString } from './signatures.js'
 
 export const NUM_BYTES = 1228800
 
@@ -56,7 +55,7 @@ class Tiny {
     for (let i = 0; i < NUM_BYTES; i++) {
       const globalSeq = this.globalSeqs[i]
       const publicKey = this.publicKeys[i]
-      const signature = toString(this.signatures[i])
+      const signature = this.signatures[i]
 
       if (globalSeq !== -1) {
         const op = createOp.set(publicKey, globalSeq, i, bytes.get(this.values, i), signature)

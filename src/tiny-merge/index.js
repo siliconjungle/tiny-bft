@@ -1,8 +1,6 @@
 import EventEmitter from 'events'
 import Tiny from './tiny.js'
 import LocalSeqs from './local-seqs.js'
-import * as bytes from './bytes.js'
-import { toBuffer } from './signatures.js'
 
 class OpsManager extends EventEmitter {
   constructor(publicKeys) {
@@ -40,14 +38,14 @@ class OpsManager extends EventEmitter {
 
     for (const op of ops) {
       if (op.type === 'proof') {
-        const appliedLocalSeq = await this.localSeqs.setLocalSeq(op.publicKey, op.localSeq, toBuffer(op.signature))
+        const appliedLocalSeq = await this.localSeqs.setLocalSeq(op.publicKey, op.localSeq, op.signature)
 
         if (appliedLocalSeq) {
           appliedOps.push(op)
         }
       } else if (op.type === 'set') {
         if (this.localSeqs.isValidSet(op)) {
-          if (this.tiny.set(op.publicKey, op.globalSeq, op.index, op.value, toBuffer(op.signature))) {
+          if (this.tiny.set(op.publicKey, op.globalSeq, op.index, op.value, op.signature)) {
             appliedOps.push(op)
           }
         }

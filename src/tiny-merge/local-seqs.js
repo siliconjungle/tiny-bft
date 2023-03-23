@@ -1,4 +1,6 @@
-import { verifySignature, toBuffer } from './signatures.js'
+// circom zkp library.
+// kzg commitments.
+import { verifySignature } from './signatures.js'
 import { createOp } from './messages.js'
 
 export const MAX_LOCAL_SEQ = 1000000000
@@ -38,6 +40,7 @@ class LocalSeqs {
     return seq > -2 && seq <= this.maxGlobalSeq
   }
 
+  // Can crash if it's not a valid signature.
   shouldSetLocalSeq = async (publicKey, seq, signature) => {
     return (
       this.publicKeys.includes(publicKey) &&
@@ -69,7 +72,7 @@ class LocalSeqs {
     op.type === 'set' &&
     this.publicKeys.includes(op.publicKey) &&
     this.isValidGlobalSeq(op.globalSeq) &&
-    verifySignature(op.publicKey, toBuffer(op.signature), { globalSeq: op.globalSeq, index: op.index, value: op.value })
+    verifySignature(op.publicKey, op.signature, { globalSeq: op.globalSeq, index: op.index, value: op.value })
 }
 
 export default LocalSeqs

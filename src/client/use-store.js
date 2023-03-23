@@ -1,43 +1,43 @@
-import { useState, useEffect } from 'react'
-import RemoteStoreManager from './remote-store-manager.js'
+// import { useState, useEffect } from 'react'
+// import RemoteStoreManager from './remote-store-manager.js'
 
-const useStore = (uri) => {
-  const [store, setStore] = useState(null)
-  const [values, setValues] = useState([])
+// const useStore = (uri) => {
+//   const [store, setStore] = useState(null)
+//   const [values, setValues] = useState([])
 
-  useEffect(() => {
-    const manager = new RemoteStoreManager()
+//   useEffect(() => {
+//     const manager = new RemoteStoreManager()
 
-    let store = manager.getStore(uri)
+//     let store = manager.getStore(uri)
 
-    if (store === null) {
-      manager.createStore(uri)
-    }
+//     if (store === null) {
+//       manager.createStore(uri)
+//     }
 
-    setStore(store)
-    setValues(store.getValues())
+//     setStore(store)
+//     setValues(store.getValues())
 
-    const handleChange = () => {
-      setValues(store.getValues())
-    }
+//     const handleChange = () => {
+//       setValues(store.getValues())
+//     }
 
-    store.addListener('change', handleChange)
+//     store.addListener('change', handleChange)
 
-    return () => {
-      store.removeListener('change', handleChange)
-    }
-  }, [uri])
+//     return () => {
+//       store.removeListener('change', handleChange)
+//     }
+//   }, [uri])
 
-  const setValueAtIndex = (index, value) => {
-    if (store) {
-      store.setValueAtIndex(index, value)
-    }
-  }
+//   const setValueAtIndex = (index, value) => {
+//     if (store) {
+//       store.setValueAtIndex(index, value)
+//     }
+//   }
 
-  return {
-    setValueAtIndex,
-    values,
-  }
-}
+//   return {
+//     setValueAtIndex,
+//     values,
+//   }
+// }
 
-export default useStore
+// export default useStore

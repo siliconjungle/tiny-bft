@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import ClientRoom from './client-room.js'
 import OpsManager from '../tiny-merge/index.js'
 import { createMessage, createOp } from '../tiny-merge/messages.js'
-import { signData, toString } from '../tiny-merge/signatures.js'
+import { signData } from '../tiny-merge/signatures.js'
 
 dotenv.config()
 
@@ -29,8 +29,8 @@ class RemoteStore extends EventEmitter {
     const signature = await signData(this.privateKey, localSeq)
 
     const ops = [
-      createOp.proof(this.publicKey, localSeq, toString(signature)),
-      createOp.set(this.publicKey, globalSeq, index, value, toString(signature2)),
+      createOp.proof(this.publicKey, localSeq, signature),
+      createOp.set(this.publicKey, globalSeq, index, value, signature2),
     ]
 
     const appliedOps = await this.opsManager.applyOps(ops)
