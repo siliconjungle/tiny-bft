@@ -1,11 +1,12 @@
+import EventEmitter from 'events'
 import Tiny from './tiny.js'
 import LocalSeqs from './local-seqs.js'
 import * as bytes from './bytes.js'
 import { toBuffer } from './signatures.js'
 
-// If you also hand an agent id with a set op you can restrict who can set the value.
-class OpsManager {
+class OpsManager extends EventEmitter {
   constructor(publicKeys) {
+    super()
     this.tiny = new Tiny()
     this.localSeqs = new LocalSeqs(publicKeys)
   }
@@ -31,7 +32,7 @@ class OpsManager {
   }
 
   getValues = () => {
-    return bytes.duplicate(this.tiny.values)
+    return this.tiny.getValues()
   }
 
   applyOps = async (ops) => {
@@ -51,6 +52,10 @@ class OpsManager {
           }
         }
       }
+    }
+
+    if (appliedOps.length > 0) {
+      this.emit('change', this.getValues())
     }
 
     return appliedOps

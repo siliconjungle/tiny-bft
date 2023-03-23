@@ -21,6 +21,10 @@ class Tiny {
     return bytes.get(this.values, index)
   }
 
+  getValues = () => {
+    return bytes.duplicate(this.values)
+  }
+
   getNextGlobalSeq = () => {
     return this.latestGlobalSeq + 1
   }

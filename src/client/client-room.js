@@ -5,11 +5,11 @@ import { createMessage, validateMessage } from '../tiny-merge/messages.js'
 const RECONNECT_TIMEOUT = 10000
 
 class ClientRoom extends EventEmitter {
-  constructor(uri, slug, opsManager) {
+  constructor(uri, opsManager) {
     super()
     this.opsManager = opsManager
     this.messages = []
-    this.connection = this.createConnection(uri + '/' + slug)
+    this.connection = this.createConnection(uri)
   }
 
   createConnection = (url) => {
@@ -49,8 +49,8 @@ class ClientRoom extends EventEmitter {
     setTimeout(() => this.createConnection(this.uri), RECONNECT_TIMEOUT)
   }
 
-  handleError = (error) => {
-    this.emit('error', error)
+  handleError = (_) => {
+    // no-op
   }
 
   handleOps = (ops) => {
