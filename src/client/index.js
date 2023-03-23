@@ -16,24 +16,28 @@ const opsManager = new OpsManager(publicKeys)
 
 const globalSeq = opsManager.getNextGlobalSeq()
 const localSeq = opsManager.getNextLocalSeq(publicKey)
+const value = 100
+const index = 0
 
-signData(privateKey, localSeq).then(signature => {
-  const ops = [
-    createOp.proof(publicKey, localSeq, toString(signature)),
-    createOp.set(globalSeq, 0, 100),
-  ]
-  const newMessage = createMessage.patch(ops)
-  
-  const clientRoom = new ClientRoom(uri, slug, opsManager)
-  
-  clientRoom.on('message', (message) => {
-    if (message.type === 'connect') {
-      console.log('connected')
-      clientRoom.addMessage(newMessage)
-    }
-  })
-  
-  clientRoom.on('apply-operations-remote', (ops) => {
-    console.log('apply-operations-remote', ops)
+signData(privateKey, { globalSeq, index, value }).then(signature2 => {
+  signData(privateKey, localSeq).then(signature => {
+    const ops = [
+      createOp.proof(publicKey, localSeq, toString(signature)),
+      createOp.set(publicKey, globalSeq, 0, 100, toString(signature2)),
+    ]
+    const newMessage = createMessage.patch(ops)
+    
+    const clientRoom = new ClientRoom(uri, slug, opsManager)
+    
+    clientRoom.on('message', (message) => {
+      if (message.type === 'connect') {
+        console.log('connected')
+        clientRoom.addMessage(newMessage)
+      }
+    })
+    
+    clientRoom.on('apply-operations-remote', (ops) => {
+      console.log('apply-operations-remote', ops)
+    })
   })
 })

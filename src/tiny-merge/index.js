@@ -45,8 +45,8 @@ class OpsManager {
           appliedOps.push(op)
         }
       } else if (op.type === 'set') {
-        if (this.localSeqs.isValidGlobalSeq(op.globalSeq)) {
-          if (this.tiny.set(op.globalSeq, op.index, op.value)) {
+        if (this.localSeqs.isValidSet(op)) {
+          if (this.tiny.set(op.publicKey, op.globalSeq, op.index, op.value, toBuffer(op.signature))) {
             appliedOps.push(op)
           }
         }

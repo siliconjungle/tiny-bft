@@ -7,11 +7,13 @@ export const createOp = {
     localSeq,
     signature,
   }),
-  set: (globalSeq, index, value) => ({
+  set: (publicKey, globalSeq, index, value, signature) => ({
     type: 'set',
+    publicKey,
     globalSeq,
     index,
     value,
+    signature,
   }),
 }
 
@@ -51,6 +53,10 @@ export const validateMessage = (message) => {
     }
 
     if (op.type === 'set') {
+      if (op.publicKey === undefined || typeof op.publicKey !== 'string') {
+        return false
+      }
+
       if (op.globalSeq === undefined || typeof op.globalSeq !== 'number') {
         return false
       }
@@ -64,6 +70,10 @@ export const validateMessage = (message) => {
       }
 
       if (op.value === undefined || typeof op.value !== 'number') {
+        return false
+      }
+
+      if (op.signature === undefined || typeof op.signature !== 'string') {
         return false
       }
     }

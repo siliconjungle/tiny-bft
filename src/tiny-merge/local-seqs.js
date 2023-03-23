@@ -1,4 +1,4 @@
-import { verifySignature } from './signatures.js'
+import { verifySignature, toBuffer } from './signatures.js'
 import { createOp } from './messages.js'
 
 export const MAX_LOCAL_SEQ = 1000000000
@@ -64,6 +64,12 @@ class LocalSeqs {
 
     return true
   }
+
+  isValidSet = async (op) =>
+    op.type === 'set' &&
+    this.publicKeys.includes(op.publicKey) &&
+    this.isValidGlobalSeq(op.globalSeq) &&
+    verifySignature(op.publicKey, toBuffer(op.signature), { globalSeq: op.globalSeq, index: op.index, value: op.value })
 }
 
 export default LocalSeqs
