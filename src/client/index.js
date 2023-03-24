@@ -23,7 +23,7 @@ const handleMerging = (merging) => {
   if (merging === true) {
     console.log('remote', store.getRemoteValues())
 
-    store.merge(true)
+    store.merge(false)
   }
 }
 
