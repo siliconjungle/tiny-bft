@@ -45,7 +45,7 @@ wss.on('connection', (ws, req) => {
     return
   }
 
-  const client = { ws, id: nanoid(), slug: url, alive: true, data: {} }
+  const client = { ws, id: nanoid(), slug: url, alive: true }
   sockets.set(ws, client)
 
   const currentRoom = getRoomBySlug(url)
