@@ -8,11 +8,11 @@ manager.createStore(uri)
 const store = manager.getStore(uri)
 
 const handleChange = (values) => {
-  console.log(values)
+  console.log('local', values)
 }
 
 store.addListener('change', handleChange)
 
-store.setValueAtIndex(0, 255)
-store.setValueAtIndex(1, 255)
-store.setValueAtIndex(2, 255)
+// store.setValueAtIndex(0, 255)
+// store.setValueAtIndex(1, 255)
+// store.setValueAtIndex(2, 255)

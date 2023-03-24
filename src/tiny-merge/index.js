@@ -9,6 +9,32 @@ class OpsManager extends EventEmitter {
     this.localSeqs = new LocalSeqs(publicKeys)
   }
 
+  getDiff = (values) => {
+    const diff = []
+    for (let i = 0; i < values.length; i++) {
+      if (values[i] !== bytes.get(this.tiny.values, i)) {
+        diff.push([i, values[i]])
+      }
+    }
+    return diff
+  }
+
+  getOpsFromDiff = (diff) => {
+    const ops = []
+
+    for (const [index, value] of diff) {
+      const globalSeq = this.tiny.getNextGlobalSeq()
+      const publicKey = this.localSeqs.publicKey
+      const localSeq = this.localSeqs.getNextLocalSeq(publicKey)
+      const signature = this.localSeqs.sign(publicKey, globalSeq, localSeq)
+
+      const op = createOp.set(publicKey, globalSeq, index, value, signature)
+      ops.push(op)
+    }
+
+    return ops
+  }
+
   getLatestGlobalSeq = () => {
     return this.tiny.getNextGlobalSeq() - 1
   }

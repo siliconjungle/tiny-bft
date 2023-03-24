@@ -1,7 +1,6 @@
 import WebSocket from 'isomorphic-ws'
 import OpsManager from '../tiny-merge/index.js'
 import { createMessage } from '../tiny-merge/messages.js'
-import { NUM_BYTES } from '../tiny-merge/tiny.js'
 
 class ServerRoom {
   constructor(slug, publicKeys) {
@@ -13,29 +12,19 @@ class ServerRoom {
   handleConnection = (client) => {
     this.addClient(client)
 
+    const snapshotOps = this.opsManager.getOps()
+
+    this.sendMessage(
+      client,
+      createMessage.connect(snapshotOps)
+    )
+
     return this
   }
 
   handleMessage = async (client, { type, ops }) => {
+    console.log('_MESSAGE_', { type, ops })
     switch (type) {
-      case 'connect': {
-        const appliedOps = await this.opsManager.applyOps(ops)
-        const snapshotOps = this.opsManager.getOps()
-
-        this.sendMessage(
-          client,
-          createMessage.connect(snapshotOps)
-        )
-
-        if (appliedOps.length > 0) {
-          this.broadcastMessageExcluding(
-            client,
-            createMessage.patch(appliedOps)
-          )
-        }
-
-        break
-      }
       case 'patch': {
         const appliedOps = await this.opsManager.applyOps(ops)
 
@@ -91,10 +80,10 @@ class ServerRoom {
     return this
   }
 
-  broadcastMessageExcluding = (clientId, message) => {
-    this.clients.forEach((client) => {
-      if (client.ws.readyState === WebSocket.OPEN && client.id !== clientId) {
-        client.ws.send(JSON.stringify(message))
+  broadcastMessageExcluding = (client, message) => {
+    this.clients.forEach((client2) => {
+      if (client2.ws.readyState === WebSocket.OPEN && client2.id !== client.id) {
+        client2.ws.send(JSON.stringify(message))
       }
     })
     return this

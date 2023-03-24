@@ -55,6 +55,7 @@ wss.on('connection', (ws, req) => {
     if (isBinary) return
 
     const message = JSON.parse(data.toString())
+
     if (!validateMessage(message)) {
       ws.close()
       return
@@ -65,6 +66,7 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     currentRoom.handleClose(client)
+    console.log('_CLOSE_')
     if (currentRoom.clients.size === 0) {
       rooms.delete(client.slug)
     }

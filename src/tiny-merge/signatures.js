@@ -84,20 +84,25 @@ export const signData = async (privateKeyPem, data) => {
     privateKey,
     encodedData
   )
-  return new Uint8Array(signature)
+  return bufferToBase64(signature)
+}
+
+const base64ToBuffer = (base64) => {
+  const uint8Array = new Uint8Array(Buffer.from(base64, 'base64'))
+  return uint8Array.buffer
 }
 
 export const verifySignature = async (publicKeyPem, signature, data) => {
   const publicKey = await importPublicKey(publicKeyPem)
   const encodedData = new TextEncoder().encode(JSON.stringify(data))
-  const isValid = await crypto.subtle.verify(
+  const signatureBuffer = base64ToBuffer(signature)
+  return crypto.subtle.verify(
     {
       name: 'ECDSA',
       hash: { name: 'SHA-256' },
     },
     publicKey,
-    signature,
+    signatureBuffer,
     encodedData
   )
-  return isValid
 }

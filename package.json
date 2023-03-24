@@ -7,7 +7,6 @@
   "scripts": {
     "server": "node src/server/index.js",
     "client": "node src/client/index.js",
-    "signatures": "node src/tiny-merge/signatures.js",
     "test": "node node_modules/jest/bin/jest.js"
   },
   "dependencies": {
