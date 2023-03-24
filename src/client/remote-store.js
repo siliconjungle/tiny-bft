@@ -14,27 +14,59 @@ class RemoteStore extends EventEmitter {
     this.privateKey = process.env.PRIVATE_KEY
     this.publicKey = process.env.PUBLIC_KEY
     this.publicKeys = process.env.PUBLIC_KEYS?.split(',') ?? []
-    this.opsManager = new OpsManager(this.publicKeys)
-    this.clientRoom = new ClientRoom(this.uri,)
-    this.opsManager.on('change', (values) => {
-      this.emit('change', values)
-    })
+    this.setOpsManager(new OpsManager(this.publicKeys))
+    this.remoteOpsManager = null
+    this.setMerging(false)
+
+    this.clientRoom = new ClientRoom(this.uri)
     this.clientRoom.on('message', (message) => {
       console.log('_ON_MESSAGE_', message)
       if (message.type === 'connect') {
-        const snapshotOps = this.opsManager.getOps()
-        if (snapshotOps.length > 0) {
-          this.clientRoom.addMessage(createMessage.patch(snapshotOps))
+        this.remoteOpsManager = new OpsManager(this.publicKeys)
+        this.remoteOpsManager.applyOps(message.ops)
+
+        const diff = this.remoteOpsManager.getDiff(this.opsManager.getValues())
+        if (diff.length > 0) {
+          this.setMerging(true)
+        } else {
+          this.setMerging(false)
         }
       } else if (message.type === 'patch') {
         if (this.clientRoom.connected === true) {
-          this.opsManager.applyOps(message.ops)
+          if (this.merging === true) {
+            if (this.remoteOpsManager !== null) {
+              this.remoteOpsManager.applyOps(message.ops)
+            }
+          } else {
+            this.opsManager.applyOps(message.ops)
+          }
         }
       }
     })
     this.clientRoom.on('connected', (connected) => {
       this.emit('connected', connected)
     })
+  }
+
+  setMerging = (merging) => {
+    if (this.merging !== merging) {
+      this.merging = merging
+      this.emit('merging', merging)
+    }
+  }
+
+  setOpsManager = (opsManager) => {
+    if (this.opsManager !== undefined) {
+      this.opsManager.removeAllListeners()
+    }
+
+    this.opsManager = opsManager
+
+    if (this.opsManager !== null) {
+      this.opsManager.on('change', (values) => {
+        this.emit('change', values)
+      })
+    }
   }
 
   setValueAtIndex = async (index, value) => {
@@ -61,8 +93,33 @@ class RemoteStore extends EventEmitter {
     return this.opsManager.getValues()
   }
 
+  getRemoteValues() {
+    return this.remoteOpsManager.getValues()
+  }
+
   getValueAtIndex() {
     return this.opsManager.getValueAtIndex()
+  }
+
+  merge = (local = true) => {
+    if (this.merging) {
+      if (local) {
+        const diff = this.remoteOpsManager.getDiff(this.opsManager.getValues())
+
+        this.setOpsManager(this.remoteOpsManager)
+        this.remoteOpsManager = null
+
+        this.setMerging(false)
+
+        for (const [index, value] of diff) {
+          this.setValueAtIndex(index, value)
+        }
+      } else {
+        this.setOpsManager(this.remoteOpsManager)
+        this.remoteOpsManager = null
+        this.setMerging(false)
+      }
+    }
   }
 }
 

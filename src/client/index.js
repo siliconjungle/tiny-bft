@@ -7,12 +7,30 @@ const uri = 'ws://localhost:8080/silicon-jungle'
 manager.createStore(uri)
 const store = manager.getStore(uri)
 
-const handleChange = (values) => {
-  console.log('local', values)
+const handleConnected = (connected) => {
+  console.log('connected', connected)
 }
 
-store.addListener('change', handleChange)
+const handleChange = (values) => {
+  console.log('change', values)
+}
 
-// store.setValueAtIndex(0, 255)
+const handleMerging = (merging) => {
+  console.log('merging', merging)
+
+  console.log('local', store.getValues())
+
+  if (merging === true) {
+    console.log('remote', store.getRemoteValues())
+
+    store.merge(true)
+  }
+}
+
+store.on('connected', handleConnected)
+store.on('change', handleChange)
+store.on('merging', handleMerging)
+
+store.setValueAtIndex(0, 255)
 // store.setValueAtIndex(1, 255)
 // store.setValueAtIndex(2, 255)

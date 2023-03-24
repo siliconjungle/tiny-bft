@@ -1,6 +1,7 @@
 import EventEmitter from 'events'
 import Tiny from './tiny.js'
 import LocalSeqs from './local-seqs.js'
+import * as bytes from './bytes.js'
 
 class OpsManager extends EventEmitter {
   constructor(publicKeys) {
