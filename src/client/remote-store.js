@@ -1,11 +1,8 @@
 import EventEmitter from 'events'
-import dotenv from 'dotenv'
 import ClientRoom from './client-room.js'
 import OpsManager from '../tiny-merge/index.js'
 import { createMessage, createOp } from '../tiny-merge/messages.js'
 import { signData } from '../tiny-merge/signatures.js'
-
-dotenv.config()
 
 class RemoteStore extends EventEmitter {
   constructor(uri) {
@@ -19,12 +16,10 @@ class RemoteStore extends EventEmitter {
     this.setMerging(false)
 
     this.clientRoom = new ClientRoom(this.uri)
-    this.clientRoom.on('message', (message) => {
-      console.log('_ON_MESSAGE_', message)
+    this.clientRoom.on('message', async (message) => {
       if (message.type === 'connect') {
         this.remoteOpsManager = new OpsManager(this.publicKeys)
-        this.remoteOpsManager.applyOps(message.ops)
-
+        await this.remoteOpsManager.applyOps(message.ops)
         const diff = this.remoteOpsManager.getDiff(this.opsManager.getValues())
         if (diff.length > 0) {
           this.setMerging(true)
@@ -35,10 +30,10 @@ class RemoteStore extends EventEmitter {
         if (this.clientRoom.connected === true) {
           if (this.merging === true) {
             if (this.remoteOpsManager !== null) {
-              this.remoteOpsManager.applyOps(message.ops)
+              await this.remoteOpsManager.applyOps(message.ops)
             }
           } else {
-            this.opsManager.applyOps(message.ops)
+            await this.opsManager.applyOps(message.ops)
           }
         }
       }
@@ -66,6 +61,8 @@ class RemoteStore extends EventEmitter {
       this.opsManager.on('change', (values) => {
         this.emit('change', values)
       })
+
+      this.emit('change', this.opsManager.getValues())
     }
   }
 
@@ -97,8 +94,8 @@ class RemoteStore extends EventEmitter {
     return this.remoteOpsManager.getValues()
   }
 
-  getValueAtIndex() {
-    return this.opsManager.getValueAtIndex()
+  getValueAtIndex(index) {
+    return this.opsManager.getValueAtIndex(index)
   }
 
   merge = (local = true) => {

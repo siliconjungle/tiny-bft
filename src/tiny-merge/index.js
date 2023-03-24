@@ -71,7 +71,9 @@ class OpsManager extends EventEmitter {
           appliedOps.push(op)
         }
       } else if (op.type === 'set') {
-        if (this.localSeqs.isValidSet(op)) {
+        const isValidSet = await this.localSeqs.isValidSet(op)
+
+        if (isValidSet) {
           if (this.tiny.set(op.publicKey, op.globalSeq, op.index, op.value, op.signature)) {
             appliedOps.push(op)
           }

@@ -1,5 +1,3 @@
-// circom zkp library.
-// kzg commitments.
 import { verifySignature } from './signatures.js'
 import { createOp } from './messages.js'
 
@@ -13,7 +11,7 @@ class LocalSeqs {
   }
 
   getLocalSeq = (publicKey) => {
-    return this.localSeqs[publicKey] || -1
+    return this.localSeqs[publicKey]?.seq ?? -1
   }
 
   getNextLocalSeq = (publicKey) => {
@@ -37,7 +35,7 @@ class LocalSeqs {
   }
 
   isValidGlobalSeq = (seq) => {
-    return seq > -2 && seq <= this.maxGlobalSeq
+    return seq > -1 && seq <= this.maxGlobalSeq
   }
 
   // Can crash if it's not a valid signature.
@@ -45,7 +43,7 @@ class LocalSeqs {
     return (
       this.publicKeys.includes(publicKey) &&
       seq < MAX_LOCAL_SEQ &&
-      seq > this.getLocalSeq(publicKey) &&
+      seq >= this.getLocalSeq(publicKey) &&
       verifySignature(publicKey, signature, seq)
     )
   }
@@ -57,7 +55,7 @@ class LocalSeqs {
     }
 
     const currentSeq = this.getLocalSeq(publicKey)
-    const diff = seq - currentSeq
+    const diff = Math.abs(seq - currentSeq)
     this.maxGlobalSeq += diff
 
     this.localSeqs[publicKey] = {
